@@ -1,0 +1,10 @@
+CLASS Console
+
+*#
+# Outputs to the console.
+#
+# @author xbony2
+#*
+DEF out(String output)
+	java.lang.System.out.println output
+	

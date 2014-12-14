@@ -1,0 +1,7 @@
+*#*
+# This file is purely concept, none of it works. This is a jasicdoc.
+#*
+CLASS Test
+
+DEF main(String[] args)
+	Console.out "Hello world!"
