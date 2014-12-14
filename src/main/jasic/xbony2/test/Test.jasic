@@ -1,7 +1,29 @@
 *#*
 # This file is purely concept, none of it works. This is a jasicdoc.
+#
+# @author xbony2
 #*
 CLASS Test
 
+*#
+ This is a non-jasicdoc multi-line comment. Notice how the code below has no brackets, it's all based on lines and
+ spaces.
+#*
 DEF main(String[] args)
-	Console.out "Hello world!"
+	Console.out "Hello world!" #The console class is automatically imported, like in java System is automatically imported.
+	Console.out "-Love JASIC" #This a single-lined comment btw.
+	
+	IF 6 > 5
+		Console.out("This should happen :P") #Using parentheses is optional for methods with only one input, like you saw 
+	ELSE									 #before.
+		Console.out "Wait, this shouldn't hapen!"
+		
+	THIS.outputSomethingFancly "Hi" #Using a method within a class
+
+*#*
+# Outputs to the console something + " -something fancy"
+#
+# @author xbony2
+#*	
+DEF outputSomethingFancly(String output)
+	Console.out output + " -something fancy"

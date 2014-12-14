@@ -7,4 +7,3 @@ CLASS Console
 #*
 DEF out(String output)
 	java.lang.System.out.println output
-	
