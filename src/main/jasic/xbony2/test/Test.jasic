@@ -19,11 +19,23 @@ DEF main(String[] args)
 		Console.out "Wait, this shouldn't hapen!"
 		
 	THIS.outputSomethingFancly "Hi" #Using a method within a class
+	outputSomethingFancy "Hello" #Same thing
+	Console.out THIS.getHello() #Using a method with a return type
 
 *#*
 # Outputs to the console something + " -something fancy"
+# this methods is the same as a public-static-void method
 #
 # @author xbony2
-#*	
+#*
 DEF outputSomethingFancly(String output)
 	Console.out output + " -something fancy"
+
+*#*
+# Gets a hello string
+# same as a public-static-String method
+#
+# @author xbony2
+#*
+DEF String getHello()
+	RETURN "Hello"
