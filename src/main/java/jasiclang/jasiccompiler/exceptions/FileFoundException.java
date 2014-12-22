@@ -1,4 +1,4 @@
-package main.java.jasiclang.compiler.exceptions;
+package jasiccompiler.exceptions;
 
 /**
  * Used when a file is found, when it shouldn't be.

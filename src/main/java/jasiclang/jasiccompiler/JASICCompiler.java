@@ -1,12 +1,12 @@
-package main.java.jasiclang.compiler;
+package jasiccompiler;
+
+import jasiccompiler.exceptions.FileFoundException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import main.java.jasiclang.compiler.exceptions.FileFoundException;
-
 public class JASICCompiler {
-	public static final String EXTENSION = "jasic";
+public static final String EXTENSION = "jasic";
 	
 	public static void compile(File jasicSrc, File compiledClass){
 		try{
