@@ -1,1 +1,3 @@
-CLASS String EXTENDS java.lang.String
+package jasiclibrary
+
+class String extends java.lang.String;

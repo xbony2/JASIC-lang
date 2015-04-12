@@ -1,0 +1,190 @@
+// This is ported from: https://github.com/xbony2/Nuclear-Control/blob/master/src/main/java/shedar/mods/ic2/nuclearcontrol/IC2NuclearControl.java
+package shedar.mods.ic2.nuclearcontrol
+
+import shedar.mods.ic2.nuclearcontrol.crossmod.bigreactors.CrossBigReactors
+
+import java.io.File
+import java.util.List
+
+import net.minecraft.item.Item
+import net.minecraftforge.common.MinecraftForge
+import org.apache.logging.log4j.Logger
+import shedar.mods.ic2.nuclearcontrol.blocks.*
+import shedar.mods.ic2.nuclearcontrol.crossmod.RF.*
+import shedar.mods.ic2.nuclearcontrol.crossmod.gregtech.GregtechRecipes
+import shedar.mods.ic2.nuclearcontrol.crossmod.ic2.CrossIndustrialCraft2
+import shedar.mods.ic2.nuclearcontrol.crossmod.opencomputers.CrossOpenComputers
+import shedar.mods.ic2.nuclearcontrol.crossmod.railcraft.CrossRailcraft
+import shedar.mods.ic2.nuclearcontrol.items.*
+import shedar.mods.ic2.nuclearcontrol.network.ChannelHandler
+import shedar.mods.ic2.nuclearcontrol.panel.ScreenManager
+import shedar.mods.ic2.nuclearcontrol.recipes.*
+import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.Mod
+import cpw.mods.fml.common.Mod.EventHandler
+import cpw.mods.fml.common.Mod.Instance
+import cpw.mods.fml.common.SidedProxy
+import cpw.mods.fml.common.event.*
+import cpw.mods.fml.common.network.NetworkRegistry
+import cpw.mods.fml.common.registry.GameRegistry
+import cpw.mods.fml.relauncher.Side
+
+@Mod(modid = "IC2NuclearControl", name = "Nuclear Control 2", modLanguage = "jasic", version = "@VERSION@", dependencies = "required-after:IC2", guiFactory = "shedar.mods.ic2.nuclearcontrol.gui.GuiFactory")
+class IC2NuclearControl:
+
+// The instance of your mod forge uses
+@Instance
+IC2NuclearControl instance
+
+// Says where the client and server 'proxy' code is loaded.
+@SidedProxy(clientSide = "shedar.mods.ic2.nuclearcontrol.ClientProxy", serverSide = "shedar.mods.ic2.nuclearcontrol.CommonProxy")
+// The proxy to be used by client and server
+CommonProxy proxy
+
+// Mod's creative tab
+IC2NCCreativeTabs tabIC2NC = new IC2NCCreativeTabs()
+
+// For logging purposes
+Logger logger
+ConfigurationHandler config
+
+protected File configFile
+protected File configDir
+
+boolean isServer
+String allowedAlarms
+List<String> serverAllowedAlarms
+Item itemToolThermometer
+Item itemToolDigitalThermometer
+Item itemRemoteSensorKit
+Item itemEnergySensorKit
+Item itemMultipleSensorKit
+Item itemSensorLocationCard
+Item itemEnergySensorLocationCard
+Item itemMultipleSensorLocationCard
+Item itemEnergyArrayLocationCard
+Item itemTimeCard
+Item itemUpgrade
+Item itemTextCard
+Item itemLiquidArrayLocationCard
+Item itemWindCard
+Item item55ReactorCard
+BlockNuclearControlMain blockNuclearControlMain
+pBlockNuclearControlLight blockNuclearControlLight
+nonstatic int modelId
+nonstatic int alarmRange
+nonstatic int SMPMaxAlarmRange
+nonstatic int maxAlarmRange
+//boolean isHttpSensorAvailableClient
+//boolean isHttpSensorAvailableServer
+nonstatic String httpSensorKey
+nonstatic List<String> availableAlarms
+nonstatic int remoteThermalMonitorEnergyConsumption
+nonstatic ScreenManager screenManager = new ScreenManager()
+nonstatic int screenRefreshPeriod
+nonstatic int rangeTriggerRefreshPeriod
+nonstatic String recipes
+
+nonstatic CrossBuildcraft crossBC
+nonstatic CrossIndustrialCraft2 crossIC2
+nonstatic CrossRailcraft crossRailcraft
+nonstatic CrossRF crossRF
+nonstatic CrossOpenComputers crossOC
+
+protected initBlocks():
+	blockNuclearControlMain = new BlockNuclearControlMain()
+	blockNuclearControlLight = new BlockNuclearControlLight()
+	itemToolThermometer = new ItemToolThermometer().setUnlocalizedName "ItemToolThermometer"
+	itemToolDigitalThermometer = new ItemToolDigitalThermometer(1, 80, 80).setUnlocalizedName "ItemToolDigitalThermometer"
+	itemSensorLocationCard = new ItemCardReactorSensorLocation().setUnlocalizedName "ItemSensorLocationCard"
+	itemUpgrade = new ItemUpgrade()
+	itemTimeCard = new ItemTimeCard().setUnlocalizedName "ItemTimeCard"
+	itemTextCard = new ItemCardText().setUnlocalizedName "ItemTextCard"
+	itemEnergySensorLocationCard = new ItemCardEnergySensorLocation().setUnlocalizedName "ItemEnergySensorLocationCard"
+	itemEnergyArrayLocationCard = new ItemCardEnergyArrayLocation().setUnlocalizedName "ItemEnergyArrayLocationCard"
+	itemMultipleSensorLocationCard = new ItemCardMultipleSensorLocation()
+	itemMultipleSensorKit = new ItemKitMultipleSensor().setUnlocalizedName "ItemCounterSensorKit"
+	itemEnergySensorKit = new ItemKitEnergySensor().setUnlocalizedName "ItemEnergySensorKit"
+	itemRemoteSensorKit = new ItemKitReactorSensor().setUnlocalizedName "ItemRemoteSensorKit"
+	itemLiquidArrayLocationCard = new ItemCardLiquidArrayLocation().setUnlocalizedName "ItemLiquidArrayLocationCard"
+	item55ReactorCard = new ItemCard55Reactor().setUnlocalizedName "Item55ReactorCard"
+
+protected registerBlocks():
+	GameRegistry.registerBlock(blockNuclearControlMain, ItemNuclearControlMain.class, "blockNuclearControlMain")
+	GameRegistry.registerBlock(blockNuclearControlLight, ItemNuclearControlLight.class,"blockNuclearControlLight")
+	GameRegistry.registerItem(itemToolThermometer, "ItemToolThermometer")
+	GameRegistry.registerItem(itemToolDigitalThermometer, "ItemToolDigitalThermometer")
+	GameRegistry.registerItem(itemRemoteSensorKit, "ItemRemoteSensorKit")
+	GameRegistry.registerItem(itemEnergySensorKit, "ItemEnergySensorKit")
+	GameRegistry.registerItem(itemMultipleSensorKit, "ItemMultipleSensorKit")
+	GameRegistry.registerItem(itemSensorLocationCard, "ItemSensorLocationCard")
+	GameRegistry.registerItem(itemEnergySensorLocationCard, "ItemEnergySensorLocationCard")
+	GameRegistry.registerItem(itemMultipleSensorLocationCard, "ItemMultipleSensorLocationCard")
+	GameRegistry.registerItem(itemEnergyArrayLocationCard, "ItemEnergyArrayLocationCard")
+	GameRegistry.registerItem(itemTimeCard, "ItemTimeCard")
+	GameRegistry.registerItem(itemUpgrade, "ItemUpgrade")
+	GameRegistry.registerItem(itemTextCard, "ItemTextCard")
+	GameRegistry.registerItem(itemLiquidArrayLocationCard, "ItemLiquidArrayLocationCard")
+	GameRegistry.registerItem(item55ReactorCard, "Item55ReactorCard")
+
+@EventHandler
+nonstatic preInit(FMLPreInitializationEvent event):
+	logger = event.getModLog()
+	if event.getSide() == Side.CLIENT:
+		isServer = false
+	else
+		isServer = true
+
+	// Loads configuration
+	config = new ConfigurationHandler()
+	FMLCommonHandler.instance().bus().register(config)
+	config.init(event.getSuggestedConfigurationFile())
+
+	// registers channel handler
+	ChannelHandler.init()
+
+	// Register event handlers
+	MinecraftForge.EVENT_BUS.register(ServerTickHandler.instance)
+	FMLCommonHandler.instance().bus().register(ServerTickHandler.instance)
+	if event.getSide().isClient():
+		MinecraftForge.EVENT_BUS.register(ClientTickHandler.instance)
+		FMLCommonHandler.instance().bus().register(ClientTickHandler.instance)
+	NetworkRegistry.INSTANCE.registerGuiHandler(instance, proxy)
+
+@EventHandler
+public void init(FMLInitializationEvent event):
+	IC2NuclearControl.instance.screenManager = new ScreenManager()
+	initBlocks()
+	registerBlocks()
+	proxy.registerTileEntities()
+	if Loader.isModLoaded("OpenComputers"): crossOC = new CrossOpenComputers()
+	//Registers waila stuff
+	FMLInterModComms.sendMessage("Waila", "register", "shedar.mods.ic2.nuclearcontrol.crossmod.waila.CrossWaila.callbackRegister")
+	CrossBigReactors.doStuff()
+	
+@EventHandler
+nonstatic postInit(FMLPostInitializationEvent event):
+	proxy.cape()
+	crossBC = new CrossBuildcraft()
+	crossIC2 = new CrossIndustrialCraft2()
+	crossRailcraft = new CrossRailcraft()
+	crossRF = new CrossRF()
+
+	if recipes.equalsIgnoreCase "normal": RecipesNew.addRecipes()
+
+	if recipes.equalsIgnoreCase "old":
+		logger.error "Old recipes deprecated! Many recipes may be missing."
+		RecipesOld.addOldRecipes()
+
+	if recipes.equalsIgnoreCase "gregtech" || recipes.equalsIgnoreCase "gregtech5"
+		GregtechRecipes.addRecipes()
+		logger.info "Hard... I mean, FUN recipes turned on! Have fun!"
+
+	/*
+	//I thought about doing this, but I didn't :P
+	ItemStack dBlock = new ItemStack(Blocks.diamond_block)
+	dBlock.setStackDisplayName "ERROR: report to skyboy!"
+	Recipes.advRecipes.addRecipe(dBlock, new Object[]{
+		"GGG", "GGG", "GGG",
+			'G', "greggy_greg_do_please_kindly_stuff_a_sock_in_it"})*/

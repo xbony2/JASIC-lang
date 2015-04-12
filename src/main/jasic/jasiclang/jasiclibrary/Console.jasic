@@ -1,9 +1,9 @@
-CLASS Console
+package jasiclibrary
 
-*#
-# Outputs to the console.
-#
-# @author xbony2
-#*
-DEF out(String output)
-	java.lang.System.out.println output
+class Console:
+
+/**
+* Output to the console.
+*/
+out(String output):
+	java.lang.System.out.println(output)
